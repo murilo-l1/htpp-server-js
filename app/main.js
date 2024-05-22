@@ -1,11 +1,11 @@
 const net = require("net");
 
-const okMessage = "HTTP/1.1 200 OK\r\n\r\n";
-const notFoundMessage = "HTTP/1.1 404 Not Found\r\n\r\n";
+const HTTP_OK = "HTTP/1.1 200 OK\r\n\r\n";
+const HTTP_NOT_FOUND = "HTTP/1.1 404 Not Found\r\n\r\n";
 
 
 const server = net.createServer((socket) => {
-    //writeOkMessage(socket);
+    //writeHTTP_OK(socket);
     socket.on("close", () => {
      socket.end();
      server.close();
@@ -24,12 +24,19 @@ const writeSocketMessage = (socket, message) => {
 
 function handleData(socket, data) {
     const firstLineItems = parseFirstLine(socket, data);
-    if(firstLineItems['path'] === '/'){
+    const currentPath = firstLineItems['path'];
+    if(currentPath === '/'){
         console.log(firstLineItems['path']);
-        writeSocketMessage(socket, okMessage);
+        writeSocketMessage(socket, HTTP_OK);
+    }
+    else if(currentPath.startsWith('/echo')){
+        const bodyContent = currentPath.split('/')[2];
+        const content_length = bodyContent.length.toString();
+        const response = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: '+ content_length + '\r\n\r\n' + bodyContent;
+        writeSocketMessage(socket, response);
     }
     else{
-        writeSocketMessage(socket, notFoundMessage);
+        writeSocketMessage(socket, HTTP_NOT_FOUND);
     }
 }
 

@@ -7,3 +7,4 @@ git push origin master
 -- curl --
 
 etapa 1: curl -i -X GET http://localhost:4221/index.html
+etapa 2 (echo): curl --verbose 127.0.0.1:4221/echo/abc
