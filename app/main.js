@@ -3,6 +3,7 @@ const net = require("net");
 const okMessage = "HTTP/1.1 200 OK\r\n\r\n";
 const notFoundMessage = "HTTP/1.1 404 Not Found\r\n\r\n";
 
+
 const server = net.createServer((socket) => {
     //writeOkMessage(socket);
     socket.on("close", () => {
@@ -10,13 +11,7 @@ const server = net.createServer((socket) => {
      server.close();
    });
     socket.on("data", (data) => {
-       const request = data.toString();
-        //console.log(request);
-        if(request.startsWith('GET / ')){
-           writeSocketMessage(socket, okMessage);
-       }else{
-           writeSocketMessage(socket, notFoundMessage);
-       }
+       handleData(socket, data);
     });
  });
 
@@ -27,6 +22,22 @@ const writeSocketMessage = (socket, message) => {
     socket.end();
 }
 
-//tests commands:
-//curl -i -X GET http://localhost:4221/index.html
-// curl -v -X GET http://localhost:4221/raspberry
+function handleData(socket, data) {
+    const firstLineItems = parseFirstLine(socket, data);
+    if(firstLineItems['path'] === '/'){
+        writeSocketMessage(socket, notFoundMessage);
+    }
+    else{
+        writeSocketMessage(socket, okMessage);
+    }
+}
+
+function parseFirstLine(socket, data){
+    const request = data.toString();
+    //console.log(request);
+    const lines = request.split('\r\n');
+    const method = lines[0].split(" ")[0];
+    const path = lines[0].split(" ")[1];
+    const version = lines[0].split(" ")[2];
+    return {'method': method, 'path': path, 'version': version};
+}
