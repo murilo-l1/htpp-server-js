@@ -25,10 +25,11 @@ const writeSocketMessage = (socket, message) => {
 function handleData(socket, data) {
     const firstLineItems = parseFirstLine(socket, data);
     if(firstLineItems['path'] === '/'){
-        writeSocketMessage(socket, notFoundMessage);
+        console.log(firstLineItems['path']);
+        writeSocketMessage(socket, okMessage);
     }
     else{
-        writeSocketMessage(socket, okMessage);
+        writeSocketMessage(socket, notFoundMessage);
     }
 }
 
