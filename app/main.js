@@ -8,7 +8,7 @@ const server = net.createServer((socket) => {
     //writeHTTP_OK(socket);
     socket.on("close", () => {
      socket.end();
-     server.close();
+     //server.close();
    });
     socket.on("data", (data) => {
        handleData(socket, data);
@@ -32,6 +32,7 @@ function handleData(socket, data) {
     }
     else if(currentPath.startsWith('/user-agent')){
         const headerContent = parseHeaders(socket,data);
+        //console.log(headerContent);
         const userAgent = headerContent['userAgent'];
         const userAgent_length = userAgent.length.toString();
         const response = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: '+ userAgent_length + '\r\n\r\n' + userAgent;
@@ -44,7 +45,6 @@ function handleData(socket, data) {
 
 function parseRequestLine(socket, data){
     const request = data.toString();
-    //console.log(request);
     const lines = request.split('\r\n');
     const method = lines[0].split(" ")[0];
     const path = lines[0].split(" ")[1];
