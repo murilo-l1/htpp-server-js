@@ -1,3 +1,4 @@
+const fs = require("fs"); // fileSystem to handle file operations
 const net = require("net");
 
 const HTTP_OK = "HTTP/1.1 200 OK\r\n\r\n";
@@ -35,8 +36,21 @@ function handleData(socket, data) {
         //console.log(headerContent);
         const userAgent = headerContent['userAgent'];
         const userAgent_length = userAgent.length.toString();
-        const response = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: '+ userAgent_length + '\r\n\r\n' + userAgent;
+        const response = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ' + userAgent_length + '\r\n\r\n' + userAgent;
         writeSocketMessage(socket,response);
+    }
+    else if(currentPath.startsWith("/files")){
+        const fileName = currentPath.split('/')[2];
+        const fileDirectory = process.argv[3];
+        const file = `${fileDirectory}/${fileName}`;
+        if(fs.existsSync(file)){
+            const content = fs.readFileSync(file).toString();
+            const length = content.length;
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${length}\r\n\r\n${content}\r\n`;
+            writeSocketMessage(socket, response);
+        }else {
+            writeSocketMessage(socket, HTTP_NOT_FOUND);
+        }
     }
     else{
         writeSocketMessage(socket, HTTP_NOT_FOUND);
