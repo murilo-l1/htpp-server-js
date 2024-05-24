@@ -3,6 +3,7 @@ const net = require("net");
 
 const HTTP_OK = "HTTP/1.1 200 OK\r\n\r\n";
 const HTTP_NOT_FOUND = "HTTP/1.1 404 Not Found\r\n\r\n";
+const HTTP_CREATED = "HTTP/1.1 201 Created\r\n\r\n";
 
 
 const server = net.createServer((socket) => {
@@ -21,6 +22,7 @@ server.listen(4221, "localhost");
 function handleData(socket, data) {
     const requestLineItems = parseRequestLine(socket, data);
     const currentPath = requestLineItems['path'];
+    const currentMethod = requestLineItems['method'];
     if(currentPath === '/'){
         //console.log(firstLineItems['path']);
         writeSocketMessage(socket, HTTP_OK);
@@ -39,7 +41,7 @@ function handleData(socket, data) {
         const response = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ' + userAgent_length + '\r\n\r\n' + userAgent;
         writeSocketMessage(socket,response);
     }
-    else if(currentPath.startsWith("/files")){
+    else if(currentPath.startsWith('/files') && currentMethod === 'GET'){
         const fileName = currentPath.split('/')[2];
         const fileDirectory = process.argv[3];
         const file = `${fileDirectory}/${fileName}`;
@@ -51,6 +53,20 @@ function handleData(socket, data) {
         }else {
             writeSocketMessage(socket, HTTP_NOT_FOUND);
         }
+    }
+    else if(currentPath.startsWith('/files') && currentMethod === 'POST'){
+        const fileName = currentPath.split('/')[2];
+        const fileDirectory = process.argv[3];
+        const file = `${fileDirectory}/${fileName}`;
+        const content = getRequestBody(socket, data);
+        //console.log(content);
+        fs.appendFile(fileName, content, function (err) {
+            if (err){
+                writeSocketMessage(socket, HTTP_NOT_FOUND);
+                throw err;
+            }
+            writeSocketMessage(socket, HTTP_CREATED);
+        });
     }
     else{
         writeSocketMessage(socket, HTTP_NOT_FOUND);
@@ -73,6 +89,13 @@ function parseHeaders(socket, data){
     const userAgent = (lines[2].split(" ")[1]).trim();
     const status = lines[3];
     return {'host': host, 'userAgent': userAgent, 'status': status};
+}
+
+function getRequestBody(socket, data){
+    const request = data.toString();
+    const lines = request.split('\r\n');
+    const body = lines[7].toString().trim();
+    return body;
 }
 
 
