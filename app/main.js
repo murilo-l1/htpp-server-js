@@ -59,14 +59,8 @@ function handleData(socket, data) {
         const fileDirectory = process.argv[3];
         const file = `${fileDirectory}/${fileName}`;
         const content = getRequestBody(socket, data);
-        //console.log(content);
-        fs.appendFile(fileName, content, function (err) {
-            if (err){
-                writeSocketMessage(socket, HTTP_NOT_FOUND);
-                throw err;
-            }
-            writeSocketMessage(socket, HTTP_CREATED);
-        });
+        fs.writeFileSync(file, content);
+        writeSocketMessage(socket, HTTP_CREATED);
     }
     else{
         writeSocketMessage(socket, HTTP_NOT_FOUND);
@@ -94,7 +88,7 @@ function parseHeaders(socket, data){
 function getRequestBody(socket, data){
     const request = data.toString();
     const lines = request.split('\r\n');
-    const body = lines[7].toString().trim();
+    const body = lines[lines.length - 1];
     return body;
 }
 
