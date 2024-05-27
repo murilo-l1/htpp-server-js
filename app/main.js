@@ -34,11 +34,9 @@ function handleData(socket, data) {
         const headers = parseHeaders(socket, data);
         const encodingMethod = headers['encoding'];
         if(encodingMethod === undefined || encodingMethod === 'invalid-encoding'){
-            console.log('1 ' + headers['encoding']);
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         else{
-
             console.log('2 ' + encodingMethod);
             response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
@@ -92,8 +90,15 @@ function parseHeaders(socket, data){
     const lines = request.split('\r\n');
     const host = lines[1].split(" ")[1];
     const userAgent = (lines[2].split(" ")[1]).trim();
-    if(lines[3].startsWith("Accept-Encoding")){
-        const encoding = (lines[4].split(" ")[1]).trim();
+    let index;
+    for(let i = 0; i < lines.length; i++){
+        if(lines[i].startsWith("Accept-Encoding")){
+            index = i;
+            break;
+        }
+    }
+    if(index !== -1){
+        const encoding = lines[index].split(" ")[1];
         return {'host': host, 'userAgent': userAgent, 'encoding': encoding};
     }
     return {'host': host, 'userAgent': userAgent};
