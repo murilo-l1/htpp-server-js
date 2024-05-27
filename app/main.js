@@ -32,11 +32,14 @@ function handleData(socket, data) {
         let response = '';
 
         const headers = parseHeaders(socket, data);
-        if(!(headers['encoding'])|| headers['encoding'] === 'invalid-encoding'){
+        const encodingMethod = headers['encoding'];
+        if(encodingMethod === undefined || encodingMethod === 'invalid-encoding'){
+            console.log('1 ' + headers['encoding']);
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
-        }//Content-Encoding
+        }
         else{
-            const encodingMethod = headers['encoding'];
+
+            console.log('2 ' + encodingMethod);
             response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         writeSocketMessage(socket, response);
