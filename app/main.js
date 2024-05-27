@@ -35,10 +35,9 @@ function handleData(socket, data) {
         if(headers.hasOwnProperty('status') || headers['encoding'] === 'invalid-enconding'){
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
-        // caso seja uma mensagem encriptada
         else{
             const encondigMethod = headers['encoding'];
-            response = `HTTP/1.1 200 OK\r\nContent-Enconding: ${encondigMethod}Content-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
+            response = `HTTP/1.1 200 OK\r\nContent-Enconding: ${encondigMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         writeSocketMessage(socket, response);
     }
@@ -90,11 +89,12 @@ function parseHeaders(socket, data){
     const lines = request.split('\r\n');
     const host = lines[1].split(" ")[1];
     const userAgent = (lines[2].split(" ")[1]).trim();
-    const temp = (lines[3].split(" ")[1]).trim();
-    if(lines[3].startsWith("accept-encoding:") || lines[3].startsWith("Accept-Encoding")){
-        return {'host': host, 'userAgent': userAgent, 'encoding': temp};
+    const status = (lines[3].split(" ")[1]).trim();
+    if(lines[4].startsWith("Accept-Encoding")){
+        const encondig = (lines[4].split(" ")[1]).trim();
+        return {'host': host, 'userAgent': userAgent, 'encoding': encondig};
     }
-    return {'host': host, 'userAgent': userAgent, 'status': temp};
+    return {'host': host, 'userAgent': userAgent, 'status': status};
 }
 
 function getRequestBody(socket, data){

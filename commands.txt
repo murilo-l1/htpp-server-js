@@ -11,3 +11,4 @@ etapa 2 (echo): curl --verbose 127.0.0.1:4221/echo/abc
 etapa 3 (user-agent): curl -i -X GET http://localhost:4221/user-agent
 etapa 4 (GET arquivos): curl -v -X GET http://localhost:4221/files/grape_orange_orange_blueberry
 etapa 5 (POST arquivos): curl -vvv -d "hello world" localhost:4221/files/readme.txt
+etapa 6 (gzip encoding): curl -v http://localhost:4221/echo/pear -H "Accept-Encoding: gzip"
