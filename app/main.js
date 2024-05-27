@@ -24,13 +24,22 @@ function handleData(socket, data) {
     const currentPath = requestLineItems['path'];
     const currentMethod = requestLineItems['method'];
     if(currentPath === '/'){
-        //console.log(firstLineItems['path']);
         writeSocketMessage(socket, HTTP_OK);
     }
     else if(currentPath.startsWith('/echo')){
         const bodyContent = currentPath.split('/')[2];
         const content_length = bodyContent.length.toString();
-        const response = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: '+ content_length + '\r\n\r\n' + bodyContent;
+        let response = '';
+
+        const headers = parseHeaders(socket, data);
+        if(headers.hasOwnProperty('status') || headers['encoding'] === 'invalid-enconding'){
+            response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
+        }
+        // caso seja uma mensagem encriptada
+        else{
+            const encondigMethod = headers['encoding'];
+            response = `HTTP/1.1 200 OK\r\nContent-Enconding: ${encondigMethod}Content-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
+        }
         writeSocketMessage(socket, response);
     }
     else if(currentPath.startsWith('/user-agent')){
@@ -38,7 +47,7 @@ function handleData(socket, data) {
         //console.log(headerContent);
         const userAgent = headerContent['userAgent'];
         const userAgent_length = userAgent.length.toString();
-        const response = 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ' + userAgent_length + '\r\n\r\n' + userAgent;
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${userAgent_length}\r\n\r\n${userAgent}`;
         writeSocketMessage(socket,response);
     }
     else if(currentPath.startsWith('/files') && currentMethod === 'GET'){
@@ -81,8 +90,11 @@ function parseHeaders(socket, data){
     const lines = request.split('\r\n');
     const host = lines[1].split(" ")[1];
     const userAgent = (lines[2].split(" ")[1]).trim();
-    const status = lines[3];
-    return {'host': host, 'userAgent': userAgent, 'status': status};
+    const temp = (lines[3].split(" ")[1]).trim();
+    if(lines[3].startsWith("accept-encoding:") || lines[3].startsWith("Accept-Encoding")){
+        return {'host': host, 'userAgent': userAgent, 'encoding': temp};
+    }
+    return {'host': host, 'userAgent': userAgent, 'status': temp};
 }
 
 function getRequestBody(socket, data){
@@ -91,7 +103,6 @@ function getRequestBody(socket, data){
     const body = lines[lines.length - 1];
     return body;
 }
-
 
 function writeSocketMessage (socket, message){
     socket.write(message);
