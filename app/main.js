@@ -32,7 +32,7 @@ function handleData(socket, data) {
         let response = '';
 
         const headers = parseHeaders(socket, data);
-        if(headers.hasOwnProperty('status') || headers['encoding'] === 'invalid-enconding'){
+        if(!(headers['encoding'])|| headers['encoding'] === 'invalid-enconding'){
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         else{
@@ -89,12 +89,11 @@ function parseHeaders(socket, data){
     const lines = request.split('\r\n');
     const host = lines[1].split(" ")[1];
     const userAgent = (lines[2].split(" ")[1]).trim();
-    const status = (lines[3].split(" ")[1]).trim();
     if(lines[4].startsWith("Accept-Encoding")){
         const encondig = (lines[4].split(" ")[1]).trim();
         return {'host': host, 'userAgent': userAgent, 'encoding': encondig};
     }
-    return {'host': host, 'userAgent': userAgent, 'status': status};
+    return {'host': host, 'userAgent': userAgent};
 }
 
 function getRequestBody(socket, data){
