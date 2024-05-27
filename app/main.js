@@ -36,8 +36,8 @@ function handleData(socket, data) {
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         else{
-            const encondigMethod = headers['encoding'];
-            response = `HTTP/1.1 200 OK\r\nContent-Enconding: ${encondigMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
+            const encodingMethod = headers['encoding'];
+            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         writeSocketMessage(socket, response);
     }
