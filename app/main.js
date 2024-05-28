@@ -41,7 +41,8 @@ function handleData(socket, data) {
     }
     else if(currentPath.startsWith('/user-agent')){
         //console.log(headerContent);
-        const userAgent = getUserAgent(socket, data);
+        const headerContent = parseHeaders(socket, data);
+        const userAgent = headerContent['userAgent'];
         const userAgent_length = userAgent.length.toString();
         const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${userAgent_length}\r\n\r\n${userAgent}`;
         writeSocketMessage(socket,response);
@@ -86,9 +87,9 @@ function parseRequestLine(socket, data){
 function parseHeaders(socket, data){
     const request = data.toString();
     const lines = request.split('\r\n');
-    console.log(lines);
+    //console.log(lines);
     const host = lines[1].split(" ")[1];
-    const userAgent = (lines[3].split(" ")[1]).trim();
+    const userAgent = (lines[2].split(" ")[1]).trim();
     console.log(userAgent);
     return {'host': host, 'userAgent': userAgent};
 }
@@ -113,7 +114,6 @@ function getEncodingMethod(socket, data){
 }
 
 function getUserAgent(socket, data){
-
     const request = data.toString();
     const lines = request.split('\r\n');
         let index = -1;
