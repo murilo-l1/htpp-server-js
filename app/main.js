@@ -31,7 +31,7 @@ function handleData(socket, data) {
         const content_length = bodyContent.length.toString();
         let response = '';
         const encodingMethod = getEncodingMethod(socket, data);
-        if(encodingMethod === 'invalid-encoding' || encodingMethod !== null){
+        if(encodingMethod !== 'invalid-encoding' || encodingMethod === null){
             response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         else{
@@ -101,7 +101,7 @@ function getEncodingMethod(socket, data){
         }
     }
     if(index !== -1){
-        const encoding = lines[index].split(" ")[1];
+        const encoding = (lines[index].split(" ")[1]).trim();
         return encoding;
     }
     else{
