@@ -30,15 +30,12 @@ function handleData(socket, data) {
         const bodyContent = currentPath.split('/')[2];
         const content_length = bodyContent.length.toString();
         let response = '';
-
-        const headers = parseHeaders(socket, data);
-        const encodingMethod = headers['encoding'];
-        if(encodingMethod === undefined || encodingMethod === 'invalid-encoding'){
-            response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
+        const encodingMethod = getEncodingMethod(socket, data);
+        if(encodingMethod !== null){
+            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         else{
-            console.log('2 ' + encodingMethod);
-            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
+            response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
         }
         writeSocketMessage(socket, response);
     }
@@ -90,7 +87,13 @@ function parseHeaders(socket, data){
     const lines = request.split('\r\n');
     const host = lines[1].split(" ")[1];
     const userAgent = (lines[2].split(" ")[1]).trim();
-    let index;
+    return {'host': host, 'userAgent': userAgent};
+}
+
+function getEncodingMethod(socket, data){
+    const request = data.toString();
+    const lines = request.split('\r\n');
+    let index = -1;
     for(let i = 0; i < lines.length; i++){
         if(lines[i].startsWith("Accept-Encoding")){
             index = i;
@@ -99,10 +102,13 @@ function parseHeaders(socket, data){
     }
     if(index !== -1){
         const encoding = lines[index].split(" ")[1];
-        return {'host': host, 'userAgent': userAgent, 'encoding': encoding};
+        return encoding;
     }
-    return {'host': host, 'userAgent': userAgent};
+    else{
+        return null;
+    }
 }
+
 
 function getRequestBody(socket, data){
     const request = data.toString();
