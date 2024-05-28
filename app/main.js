@@ -43,7 +43,7 @@ function handleData(socket, data) {
         //console.log(headerContent);
         const userAgent = getUserAgent(socket, data);
         const userAgent_length = userAgent.length.toString();
-        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${userAgent_length}\r\n\r\n${userAgent}`;
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${userAgent_length}\r\n\r\n${userAgent}`;
         writeSocketMessage(socket,response);
     }
     else if(currentPath.startsWith('/files') && currentMethod === 'GET'){
