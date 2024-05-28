@@ -32,10 +32,10 @@ function handleData(socket, data) {
         let response = '';
         const encodingMethod = getEncodingMethod(socket, data);
         if(encodingMethod !== 'invalid-encoding' && encodingMethod !== null){
-            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
+            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
         }
         else{
-            response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Lenght: ${content_length}\r\n\r\n${bodyContent}`;
+            response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
         }
         writeSocketMessage(socket, response);
     }
