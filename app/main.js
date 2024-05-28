@@ -85,8 +85,9 @@ function parseRequestLine(socket, data){
 function parseHeaders(socket, data){
     const request = data.toString();
     const lines = request.split('\r\n');
+    console.log(lines);
     const host = lines[1].split(" ")[1];
-    const userAgent = (lines[2].split(" ")[1]).trim();
+    const userAgent = (lines[3].split(" ")[1]).trim();
     return {'host': host, 'userAgent': userAgent};
 }
 
