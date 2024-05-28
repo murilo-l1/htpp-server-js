@@ -72,6 +72,8 @@ function handleData(socket, data) {
     }
 }
 
+//TODO: refatorar as funcoes de headers para metodo que encontra o que eu quero, assim fica mais clean
+
 function parseRequestLine(socket, data){
     const request = data.toString();
     const lines = request.split('\r\n');
