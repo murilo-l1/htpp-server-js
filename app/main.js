@@ -31,7 +31,7 @@ function handleData(socket, data) {
         const content_length = bodyContent.length.toString();
         let response = '';
         const encodingMethods = getEncodingMethods(socket, data);
-        if(encodingMethods !== []){
+        if(encodingMethods.length > 0){
             response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethods}\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
         }
         else{
@@ -98,7 +98,11 @@ function getEncodingMethods(socket, data){
     const request = data.toString();
     const lines = request.split('\r\n');
     const lineOfEncode = lines.find((line) => line.startsWith("Accept-Encoding"));
-    const encodingsPart = (lineOfEncode.split(": ")[1]).trim();
+    let encodingsPart = '';
+    if(lineOfEncode !== undefined)
+        encodingsPart = (lineOfEncode.split(": ")[1]).trim();
+    else
+        return [];
     const encodingMethods = encodingsPart.split(", ");
     return encodingMethods.filter((encodeMethod) => encodeMethod === 'gzip');
 }
