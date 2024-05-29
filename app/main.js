@@ -1,5 +1,6 @@
 const fs = require("fs"); // fileSystem to handle file operations
 const net = require("net");
+const zlib = require('zlib'); // library to compress gzip data
 
 const HTTP_OK = "HTTP/1.1 200 OK\r\n\r\n";
 const HTTP_NOT_FOUND = "HTTP/1.1 404 Not Found\r\n\r\n";
@@ -32,7 +33,8 @@ function handleData(socket, data) {
         let response = '';
         const encodingMethods = getEncodingMethods(socket, data);
         if(encodingMethods.length > 0){
-            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethods}\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
+            const bodyEncoded = zlib.gzipSync(bodyContent);
+            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethods}\r\nContent-Type: text/plain\r\nContent-Length: ${Buffer.byteLength(bodyEncoded)}\r\n\r\n${bodyEncoded}`;
         }
         else{
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
@@ -73,8 +75,6 @@ function handleData(socket, data) {
     }
 }
 
-//TODO: refatorar as funcoes de headers para metodo que encontra o que eu quero, assim fica mais clean
-
 function parseRequestLine(socket, data){
     const request = data.toString();
     const lines = request.split('\r\n');
@@ -90,7 +90,7 @@ function parseHeaders(socket, data){
     //console.log(lines);
     const host = lines[1].split(" ")[1];
     const userAgent = (lines[2].split(" ")[1]).trim();
-    console.log(userAgent);
+    //console.log(userAgent);
     return {'host': host, 'userAgent': userAgent};
 }
 
@@ -118,11 +118,3 @@ function writeSocketMessage (socket, message){
     socket.write(message);
     socket.end();
 }
-
-/*function getUserAgent(socket, data){
-    const request = data.toString();
-    const lines = request.split('\r\n');
-    const lineOfUser = lines.find((line) => line.startsWith("User-Agent"));
-    const userAgent = lineOfUser.split(" ")[1];
-    return userAgent;
-}*/
