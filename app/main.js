@@ -34,13 +34,16 @@ function handleData(socket, data) {
         const encodingMethods = getEncodingMethods(socket, data);
         if(encodingMethods.length > 0){
             const bodyEncoded = zlib.gzipSync(bodyContent);
-            console.log(bodyEncoded);
-            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethods}\r\nContent-Type: text/plain\r\nContent-Length: ${Buffer.byteLength(bodyEncoded)}\r\n\r\n${bodyContent}`;
+            const bodyEncodedLength = bodyEncoded.length;
+            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethods}\r\nContent-Type: text/plain\r\nContent-Length: ${bodyEncodedLength}\r\n\r\n`;
+            socket.write(response);
+            socket.write(bodyEncoded);
+            socket.end();
         }
         else{
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
+            writeSocketMessage(socket, response);
         }
-        writeSocketMessage(socket, response);
     }
     else if(currentPath.startsWith('/user-agent')){
         //console.log(headerContent);
