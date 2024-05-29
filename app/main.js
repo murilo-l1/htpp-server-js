@@ -31,14 +31,9 @@ function handleData(socket, data) {
         const bodyContent = currentPath.split('/')[2];
         const content_length = bodyContent.length.toString();
         let response = '';
-        const encodingMethods = getEncodingMethods(socket, data);
-        if(encodingMethods.length > 0){
-            const bodyEncoded = zlib.gzipSync(bodyContent);
-            const bodyEncodedLength = bodyEncoded.length;
-            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethods}\r\nContent-Type: text/plain\r\nContent-Length: ${bodyEncodedLength}\r\n\r\n`;
-            socket.write(response);
-            socket.write(bodyEncoded);
-            socket.end();
+        const isEncoded = isEncodedMessage(socket, data);
+        if(isEncoded){
+            sendEncodedMessage(socket, bodyContent);
         }
         else{
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
@@ -98,17 +93,21 @@ function parseHeaders(socket, data){
     return {'host': host, 'userAgent': userAgent};
 }
 
-function getEncodingMethods(socket, data){
+function isEncodedMessage(socket, data){
     const request = data.toString();
     const lines = request.split('\r\n');
     const lineOfEncode = lines.find((line) => line.startsWith("Accept-Encoding"));
     let encodingsPart = '';
+
     if(lineOfEncode !== undefined)
         encodingsPart = (lineOfEncode.split(": ")[1]).trim();
     else
-        return [];
+        return false;
+
     const encodingMethods = encodingsPart.split(", ");
-    return encodingMethods.filter((encodeMethod) => encodeMethod === 'gzip');
+    const filteredMethods = encodingMethods.filter((encodeMethod) => encodeMethod === 'gzip');
+
+    return (filteredMethods.length > 0);
 }
 
 function getRequestBody(socket, data){
@@ -116,6 +115,14 @@ function getRequestBody(socket, data){
     const lines = request.split('\r\n');
     const body = lines[lines.length - 1];
     return body;
+}
+
+function sendEncodedMessage(socket, content){
+    const messageEncoded = zlib.gzipSync(content);
+    const response = `HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: ${messageEncoded.length}\r\n\r\n`;
+    socket.write(response);
+    socket.write(messageEncoded);
+    socket.end();
 }
 
 function writeSocketMessage (socket, message){
