@@ -30,9 +30,9 @@ function handleData(socket, data) {
         const bodyContent = currentPath.split('/')[2];
         const content_length = bodyContent.length.toString();
         let response = '';
-        const encodingMethod = getEncodingMethod(socket, data);
-        if(encodingMethod !== 'invalid-encoding' && encodingMethod !== null){
-            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethod}\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
+        const encodingMethods = getEncodingMethods(socket, data);
+        if(encodingMethods !== []){
+            response = `HTTP/1.1 200 OK\r\nContent-Encoding: ${encodingMethods}\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
         }
         else{
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${content_length}\r\n\r\n${bodyContent}`;
@@ -94,43 +94,13 @@ function parseHeaders(socket, data){
     return {'host': host, 'userAgent': userAgent};
 }
 
-function getEncodingMethod(socket, data){
+function getEncodingMethods(socket, data){
     const request = data.toString();
     const lines = request.split('\r\n');
-    let index = -1;
-    for(let i = 0; i < lines.length; i++){
-        if(lines[i].startsWith("Accept-Encoding")){
-            index = i;
-            break;
-        }
-    }
-    if(index !== -1){
-        const encoding = (lines[index].split(" ")[1]).trim();
-        return encoding;
-    }
-    else{
-        return null;
-    }
-}
-
-function getUserAgent(socket, data){
-    const request = data.toString();
-    const lines = request.split('\r\n');
-        let index = -1;
-        for(let i = 0; i < lines.length; i++){
-            if(lines[i].startsWith("User-Agent")){
-                index = i;
-                break;
-            }
-        }
-        if(index !== -1){
-            const userAgent = (lines[index].split(" ")[1]).trim();
-            return userAgent;
-        }
-        else{
-            return null;
-        }
-
+    const lineOfEncode = lines.find((line) => line.startsWith("Accept-Encoding"));
+    const encodingsPart = (lineOfEncode.split(": ")[1]).trim();
+    const encodingMethods = encodingsPart.split(", ");
+    return encodingMethods.filter((encodeMethod) => encodeMethod === 'gzip');
 }
 
 function getRequestBody(socket, data){
@@ -144,3 +114,11 @@ function writeSocketMessage (socket, message){
     socket.write(message);
     socket.end();
 }
+
+/*function getUserAgent(socket, data){
+    const request = data.toString();
+    const lines = request.split('\r\n');
+    const lineOfUser = lines.find((line) => line.startsWith("User-Agent"));
+    const userAgent = lineOfUser.split(" ")[1];
+    return userAgent;
+}*/
